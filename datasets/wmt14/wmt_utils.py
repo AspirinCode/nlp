@@ -826,8 +826,8 @@ def _parse_parallel_sentences(f1, f2):
             lang = "zh" if lang in ("ch", "cn") else lang
         else:
             lang = split_path[-1]
-        with open(path) as f:
-            return f.read().split("\n"), lang
+        with open(path, "rb") as f:
+            return f.read().decode("utf-8").split("\n"), lang
 
     def _parse_sgm(path):
         """Returns sentences from a single SGML file."""
