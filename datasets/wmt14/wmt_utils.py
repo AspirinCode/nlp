@@ -26,6 +26,7 @@ import logging
 import os
 import re
 import xml.etree.cElementTree as ElementTree
+from abc import ABC, abstractmethod
 
 import six
 
@@ -643,9 +644,6 @@ class WmtConfig(nlp.BuilderConfig):
         split. Note that WMT subclasses overwrite this parameter.
       **kwargs: keyword arguments forwarded to super.
     """
-        import ipdb
-
-        ipdb.set_trace()
         name = "%s-%s" % (language_pair[0], language_pair[1])
         if "name" in kwargs:  # Add name suffix for custom configs
             name += "." + kwargs.pop("name")
@@ -658,7 +656,7 @@ class WmtConfig(nlp.BuilderConfig):
         self.subsets = subsets
 
 
-class Wmt(nlp.GeneratorBasedBuilder):
+class Wmt(ABC, nlp.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
     MANUAL_DOWNLOAD_INSTRUCTIONS = """\
@@ -677,9 +675,10 @@ class Wmt(nlp.GeneratorBasedBuilder):
         super(Wmt, self).__init__(*args, **kwargs)
 
     @property
+    @abstractmethod
     def _subsets(self):
         """Subsets that make up each split of the dataset."""
-        return self.config.subsets
+        raise NotImplementedError("This is a abstract method")
 
     @property
     def subsets(self):
@@ -698,18 +697,13 @@ class Wmt(nlp.GeneratorBasedBuilder):
         return filtered_subsets
 
     def _info(self):
-        import ipdb
-
-        ipdb.set_trace()
         src, target = self.config.language_pair
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.features.Translation(
-                languages=self.config.language_pair,
-                supervised_keys=(src, target),
-                homepage=self.config.url,
-                citation=self.config.citation,
-            ),
+            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
+            supervised_keys=(src, target),
+            homepage=self.config.url,
+            citation=self.config.citation,
         )
 
     def _vocab_text_gen(self, split_subsets, extraction_map, language):
@@ -728,10 +722,14 @@ class Wmt(nlp.GeneratorBasedBuilder):
                 # removed.
                 urls_to_download[_CZENG17_FILTER.name] = _CZENG17_FILTER.get_url(source)
             ds = DATASET_MAP[ss_name]
-            if ds.get_manual_dl_files(source):
-                raise NotImplementedError("TODO(PVP)")
-            else:
-                urls_to_download[ss_name] = ds.get_url(source)
+            urls_to_download[ss_name] = ds.get_url(source)
+
+        #            if ds.get_manual_dl_files(source):
+        #                import ipdb
+        #                ipdb.set_trace()
+        #                raise NotImplementedError("TODO(PVP)")
+        #            else:
+        #                pass
 
         # Download and extract files from URLs.
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
@@ -982,4 +980,4 @@ def _parse_hindencorp(path):
             if len(split_line) != 5:
                 logging.warning("Skipping invalid HindEnCorp line: %s", line)
                 continue
-            yield line_id, {"en": split_line[3].strip(), "hi": split_line[4].strip()}
+            yield line_id, {"translation": {"en": split_line[3].strip(), "hi": split_line[4].strip()}}

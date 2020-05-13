@@ -18,7 +18,7 @@
 
 import nlp
 
-from . import wmt
+from .wmt_utils import Wmt, WmtConfig
 
 
 _URL = "http://www.statmt.org/wmt14/translation-task.html"
@@ -39,13 +39,13 @@ _CITATION = """
 _LANGUAGE_PAIRS = [(lang, "en") for lang in ["cs", "de", "fr", "hi", "ru"]]
 
 
-class Wmt14Translate(wmt.WmtTranslate):
+class Wmt14(Wmt):
     """WMT 14 translation datasets for all {xx, "en"} language pairs."""
 
     # Version history:
     # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
     BUILDER_CONFIGS = [
-        wmt.WmtConfig(  # pylint:disable=g-complex-comprehension
+        WmtConfig(  # pylint:disable=g-complex-comprehension
             description="WMT 2014 %s-%s translation task dataset." % (l1, l2),
             url=_URL,
             citation=_CITATION,
