@@ -42,26 +42,26 @@ echo "Conversion succesful!"
 
 # STEP 2
 
-#echo ""
-#echo ""
-#if [ -f "${pathToFolder}/urls_checksums/checksums.txt" ]; then
-#	echo "### STEP 2 ### Checksums is already created. To create checksums again remove ${pathToFolder}/urls_checksums/checksums.txt ..."
-#else
-#	echo "### STEP 2 ### Create checksums ..."
-#	eval "python nlp-cli test ${pathToFolder} --save_checksums --all_configs"
-#fi
+echo ""
+echo ""
+if [ -f "${pathToFolder}/urls_checksums/checksums.txt" ]; then
+	echo "### STEP 2 ### Checksums is already created. To create checksums again remove ${pathToFolder}/urls_checksums/checksums.txt ..."
+else
+	echo "### STEP 2 ### Create checksums ..."
+	eval "python nlp-cli test ${pathToFolder} --save_checksums --all_configs"
+fi
+
+if [ -f "${pathToFolder}/urls_checksums/checksums.txt" ]; then
+	echo "checksums.txt found in ${pathToFolder}/urls_checksums."
+else
+	echo "checksums.txt not found in ${pathToFolder}/urls_checksums. Add checksums manually."
+	exit
+fi
 #
-#if [ -f "${pathToFolder}/urls_checksums/checksums.txt" ]; then
-#	echo "checksums.txt found in ${pathToFolder}/urls_checksums."
-#else
-#	echo "checksums.txt not found in ${pathToFolder}/urls_checksums. Add checksums manually."
-#	exit
-#fi
-
-# rm lock file
-#rm ${pathToFolder}/*.lock
-
-#echo "Checksums creation succesful!"
+ rm lock file
+rm ${pathToFolder}/*.lock
+#
+echo "Checksums creation succesful!"
 
 echo ""
 echo ""
