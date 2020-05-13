@@ -17,7 +17,10 @@
 """WMT14: Translate dataset."""
 
 import nlp
+
 from . import wmt
+
+
 _URL = "http://www.statmt.org/wmt14/translation-task.html"
 _CITATION = """
 @InProceedings{bojar-EtAl:2014:W14-33,
@@ -33,38 +36,40 @@ _CITATION = """
 }
 """
 
-_LANGUAGE_PAIRS = [
-    (lang, "en") for lang in ["cs", "de", "fr", "hi", "ru"]
-]
+_LANGUAGE_PAIRS = [(lang, "en") for lang in ["cs", "de", "fr", "hi", "ru"]]
 
 
 class Wmt14Translate(wmt.WmtTranslate):
-  """WMT 14 translation datasets for all {xx, "en"} language pairs."""
+    """WMT 14 translation datasets for all {xx, "en"} language pairs."""
 
-  # Version history:
-  # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
-  BUILDER_CONFIGS = [
-      wmt.WmtConfig(  # pylint:disable=g-complex-comprehension
-          description="WMT 2014 %s-%s translation task dataset." % (l1, l2),
-          url=_URL,
-          citation=_CITATION,
-          language_pair=(l1, l2),
-          version=nlp.Version("1.0.0"),
-      ) for l1, l2 in _LANGUAGE_PAIRS
-  ]
+    # Version history:
+    # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
+    BUILDER_CONFIGS = [
+        wmt.WmtConfig(  # pylint:disable=g-complex-comprehension
+            description="WMT 2014 %s-%s translation task dataset." % (l1, l2),
+            url=_URL,
+            citation=_CITATION,
+            language_pair=(l1, l2),
+            version=nlp.Version("1.0.0"),
+        )
+        for l1, l2 in _LANGUAGE_PAIRS
+    ]
 
-  @property
-  def _subsets(self):
-    return {
-        nlp.Split.TRAIN: [
-            "europarl_v7", "commoncrawl", "multiun",
-            "newscommentary_v9", "gigafren", "czeng_10", "yandexcorpus",
-            "wikiheadlines_hi", "wikiheadlines_ru", "hindencorp_01"
-        ],
-        nlp.Split.VALIDATION: [
-            "newsdev2014", "newstest2013"
-        ],
-        nlp.Split.TEST: [
-            "newstest2014"
-        ]
-    }
+    @property
+    def _subsets(self):
+        return {
+            nlp.Split.TRAIN: [
+                "europarl_v7",
+                "commoncrawl",
+                "multiun",
+                "newscommentary_v9",
+                "gigafren",
+                "czeng_10",
+                "yandexcorpus",
+                "wikiheadlines_hi",
+                "wikiheadlines_ru",
+                "hindencorp_01",
+            ],
+            nlp.Split.VALIDATION: ["newsdev2014", "newstest2013"],
+            nlp.Split.TEST: ["newstest2014"],
+        }
