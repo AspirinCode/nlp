@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import codecs
 import functools
+import glob
 import gzip
 import itertools
 import logging
@@ -707,7 +708,7 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
         )
 
     def _vocab_text_gen(self, split_subsets, extraction_map, language):
-        for _, ex in self._generate_examples(split_subsets, extraction_map):
+        for _, ex in self._generate_examples(split_subsets, extraction_map, with_translation=False):
             yield ex[language]
 
     def _split_generators(self, dl_manager):
@@ -725,8 +726,6 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
             urls_to_download[ss_name] = ds.get_url(source)
 
         #            if ds.get_manual_dl_files(source):
-        #                import ipdb
-        #                ipdb.set_trace()
         #                raise NotImplementedError("TODO(PVP)")
         #            else:
         #                pass
@@ -735,7 +734,6 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
         # Extract manually downloaded files.
         manual_files = dl_manager.extract(manual_paths)
-
         extraction_map = dict(downloaded_files, **manual_files)
 
         for language in self.config.language_pair:
@@ -748,7 +746,7 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
             for split, split_subsets in self.subsets.items()
         ]
 
-    def _generate_examples(self, split_subsets, extraction_map):
+    def _generate_examples(self, split_subsets, extraction_map, with_translation=True):
         """Returns the examples in the raw (text) form."""
         source, _ = self.config.language_pair
 
@@ -766,6 +764,7 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
             ds = DATASET_MAP[ss_name]
             extract_dirs = extraction_map[ss_name]
             files = _get_local_paths(ds, extract_dirs)
+
             if ss_name.startswith("czeng"):
                 if ss_name.endswith("16pre"):
                     sub_generator = functools.partial(_parse_tsv, language_pair=("en", "cs"))
@@ -804,6 +803,8 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
                 # TODO(adarob): Add subset feature.
                 # ex["subset"] = subset
                 key = "{}/{}".format(ss_name, sub_key)
+                if with_translation is True:
+                    ex = {"translation": ex}
                 yield key, ex
 
 
@@ -847,8 +848,8 @@ def _parse_parallel_sentences(f1, f2):
 
     # Some datasets (e.g., CWMT) contain multiple parallel files specified with
     # a wildcard. We sort both sets to align them and parse them one by one.
-    f1_files = nlp.Value("io").gfile.glob(f1)
-    f2_files = nlp.Value("io").gfile.glob(f2)
+    f1_files = glob.glob(f1)
+    f2_files = glob.glob(f2)
 
     assert f1_files and f2_files, "No matching files found: %s, %s." % (f1, f2)
     assert len(f1_files) == len(f2_files), "Number of files do not match: %d vs %d for %s vs %s." % (
@@ -954,7 +955,7 @@ def _parse_czeng(*paths, **kwargs):
         logging.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
 
     for path in paths:
-        for gz_path in nlp.Value("io").gfile.glob(path):
+        for gz_path in glob.glob(path):
             with open(gz_path, "rb") as g, gzip.GzipFile(fileobj=g) as f:
                 filename = os.path.basename(gz_path)
                 for line_id, line in enumerate(f):
